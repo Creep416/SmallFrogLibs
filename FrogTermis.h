@@ -5,8 +5,9 @@
 #include <termios.h>
 #include <fstream>
 #include <map>
-using namespace std;
+#include <iostream>
 
+using namespace std;
 /*
 Класс для переключения терминала
 Основные функции: .scan_std() .set_nstd() .set_ostd()
@@ -30,8 +31,12 @@ public:
 	{
 		tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
 	}
-	terml(){};
+	terml()
+	{
+		scan_std();
+	};
 };
+terml term = terml();
 
 /*
 Создаёт экземпляр экрана с размером x,y
@@ -44,7 +49,7 @@ class new_screen
 private:
 	int x, y;
 	bool main;
-	char screen[128][128][colarr_size+1];
+	char screen[128][128][8][colarr_size+1];
 public:
 	void set_res(int a, int b)
 	{
@@ -60,13 +65,13 @@ public:
 	{
 		return(screen);
 	}
-	void set_symbol(int x, int y, char symbol)
+	void set_symbol(int x, int y, int z, char symbol)
 	{
-		screen[x][y][colarr_size] = symbol;
+		screen[x][y][z][colarr_size] = symbol;
 	}
-	char get_symbol(int X, int Y)
+	char get_symbol(int X, int Y, int Z)
 	{
-		return(screen[X][Y][colarr_size]);
+		return(screen[X][Y][Z][colarr_size]);
 	}
 	void clear()
 	{
@@ -83,8 +88,8 @@ public:
 			for (int k = 0; k < x; k++)
 			{
 				for (int j = 0; j<colarr_size; j++)
-					screen[k][i][j] = tempcolor[j];
-				screen[k][i][colarr_size] = '0';
+					screen[k][i][0][j] = tempcolor[j];
+				screen[k][i][0][colarr_size] = '0';
 			}
 		}
 	};
@@ -95,14 +100,20 @@ public:
 	{
 		clear();
 		cout << "\x1b[8;"<<y<<";"<<x<<";t";					//Задание размера экрана
-		for (int i = 0; i < y; i++)
+		for (int Y = 0; Y < y; Y++)
 		{
-			for (int k = 0; k < x; k++)
+			for (int X = 0; X < x; X++)
 			{
 				for (int j = 0; j < colarr_size+1; j++)
 				{
-					cout << screen[k][i][j];
+					int Z = 7;
+					while(get_symbol(X,Y,Z) == '\0')
+					{
+						Z--;
+					}
+					cout << screen[X][Y][Z][j];
 				}
+				//cout << " " << X << Y << "\n";
 			}
 		}
 	}
@@ -174,72 +185,72 @@ public:
 	*/
 
 	//	Цветовые
-	void draw_color(int x, int y)
+	void draw_color(int x, int y, int z)
 	{
 		for (int j = 0; j < colarr_size; j++)
 			{
-				refScreen->get_screen()[x][y][j] = color[j];
+				refScreen->get_screen()[x][y][z][j] = color[j];
 			}		
 	}
 
-	void draw_color(int x, int y, int colorize)
+	void draw_color(int x, int y, int z, int colorize)
 	{
 		set_color(colorize);
 		for (int j = 0; j < colarr_size; j++)
 			{
-				refScreen->get_screen()[x][y][j] = color[j];
+				refScreen->get_screen()[x][y][z][j] = color[j];
 			}		
 	}
 	
 
 
-	void draw_symbol(int x, int y, char sym)
+	void draw_symbol(int x, int y, int z, char sym)
 	{
-		refScreen->get_screen()[x][y][colarr_size] = sym;
+		refScreen->get_screen()[x][y][z][colarr_size] = sym;
 	}
 
-	void draw_symbol(int x, int y, char sym, int colorize)
+	void draw_symbol(int x, int y, int z, char sym, int colorize)
 	{
-		draw_color(x, y, colorize);
-		refScreen->get_screen()[x][y][colarr_size] = sym;
+		draw_color(x, y, z, colorize);
+		refScreen->get_screen()[x][y][z][colarr_size] = sym;
 	}
 
 
 
 	//	Фигурные
-	void draw_line(int x, int y, char direction, int lenght, char sym)
+	void draw_line(int x, int y, int z, char direction, int lenght, char sym)
 	{
 		switch (direction)
 		{
 			case 'U':
 				for (int i = y; i < y + lenght; i++)
-					draw_symbol(x,i,sym);
+					draw_symbol(x,i,z,sym);
 				break;
 			case 'D':
 				for (int i = y; i > y - lenght; i--)
-					draw_symbol(x,i,sym);
+					draw_symbol(x,i,z,sym);
 				break;
 			case 'L':
 				for (int k = x; k > x - lenght; k--)
-					draw_symbol(k,y,sym);
+					draw_symbol(k,y,z,sym);
 				break;
 			case 'R':
 				for (int k = x; k < x + lenght; k++)
-					draw_symbol(k,y,sym);
+					draw_symbol(k,y,z,sym);
 				break;
 		}
 	}
 	void draw_circle(int cx, int cy, int r);
-	void draw_fill_square(int x1, int y1, int x2, int y2, char sym)
+	void draw_fill_square(int x1, int y1, int x2, int y2, int z, char sym)
 	{
 		for (int i = y1; i < y2; i++)
 			for (int k = x1; k < x2; k++)
 				{
 					for (int j = 0; j < colarr_size; j++)
 						{
-							refScreen->get_screen()[i][k][j] = color[j];
+							refScreen->get_screen()[i][k][z][j] = color[j];
 						}
-					draw_symbol(i, k, sym);
+					draw_symbol(i, k, z, sym);
 				}
 		}
 	void clear()
