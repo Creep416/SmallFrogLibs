@@ -58,10 +58,11 @@ public:
 set_res(x, y)
 */
 
-const int colarr_size = 11;
+
 class new_screen
 {
 private:
+	static const int colarr_size = 11;
 	int x, y;
 	bool main;
 	char screen[128][128][8][colarr_size+1];
@@ -138,6 +139,8 @@ public:
 
 class draw
 {
+private:
+	static const int colarr_size = 11;
 public:
 
 	/*
