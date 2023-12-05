@@ -8,10 +8,11 @@
 #include <iostream>
 
 using namespace std;
-/*
-Класс для переключения терминала
-Основные функции: .scan_std() .set_nstd() .set_ostd()
-*/
+
+
+// Класс для переключения терминала
+// Основные функции: .scan_std() .set_nstd() .set_ostd() .start() {Вызывается при инициализации класса} .stop()
+
 class terml
 {
 private:
@@ -31,12 +32,26 @@ public:
 	{
 		tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
 	}
-	terml()
+	void start()
 	{
 		scan_std();
+		set_nstd();
 	};
+	void stop()
+	{
+		set_ostd();
+	}
+	terml()
+	{
+		start();	
+	};
+	~terml()
+	{
+		stop();
+	};
+
 };
-terml term = terml();
+// terml term = terml();
 
 /*
 Создаёт экземпляр экрана с размером x,y
@@ -73,27 +88,13 @@ public:
 	{
 		return(screen[X][Y][Z][colarr_size]);
 	}
-	void clear()
+	void clear() //убирает всё с терминала
 	{
 		cout << "\033c";
 	}
 
-	new_screen(){cout << "Окно создано\n";};
-	new_screen(int a, int b, bool main)
-	{
-		set_res(a,b);
-		char tempcolor[colarr_size] = {'\033','[','3','9',';','4','9',';','2','2','m'};
-		for (int i = 0; i < y; i++)
-		{
-			for (int k = 0; k < x; k++)
-			{
-				for (int j = 0; j<colarr_size; j++)
-					screen[k][i][0][j] = tempcolor[j];
-				screen[k][i][0][colarr_size] = '0';
-			}
-		}
-	};
-	~new_screen(){};
+	// new_screen(){cout << "Окно создано\n";};
+	
 	
 
 	void render(void)
@@ -117,6 +118,21 @@ public:
 			}
 		}
 	}
+	new_screen(int a, int b, bool main)
+	{
+		set_res(a,b);
+		char tempcolor[colarr_size] = {'\033','[','3','9',';','4','9',';','2','2','m'};
+		for (int i = 0; i < y; i++)
+		{
+			for (int k = 0; k < x; k++)
+			{
+				for (int j = 0; j<colarr_size; j++)
+					screen[k][i][0][j] = tempcolor[j];
+				screen[k][i][0][colarr_size] = '0';
+			}
+		}
+	};
+	~new_screen(){};
 };
 
 
